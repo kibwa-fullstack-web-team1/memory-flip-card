@@ -4,28 +4,28 @@ from typing import Optional
 
 from app.deps.db import get_db
 from app.models.upload_photo import FamilyPhoto
+from app.models.game_result import GameResult
 from app.schemas.photo_schema import FamilyPhotoListResponse, PhotoItem
+from app.schemas.record_scehma import GameResultCreate
 
 router = APIRouter()
 
 #게임 결과 저장 API
-@router.post("/")
+@router.post("/game")
 def save_game_result(
-    user_id: str = Body(...),
-    score: int = Body(...),
-    play_time: int = Body(...),
-    difficulty: Optional[str] = Body(None),
+    result: GameResultCreate,
     db: Session = Depends(get_db)
 ):
     try:
         # 여기에 게임 결과를 저장하는 모델을 생성하고 DB에 저장
         game_result = GameResult(
-            user_id=user_id,
-            score=score,
-            play_time=play_time,
-            difficulty=difficulty
+            user_id=result.user_id,
+            score=result.score,
+            duration_seconds=result.duration_seconds,  
+            attempts=result.attempts,
+            matches=result.matches,
+            difficulty=result.difficulty
         )
-        
         db.add(game_result)
         db.commit()
         db.refresh(game_result)
@@ -38,3 +38,4 @@ def save_game_result(
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"게임 결과 저장 실패: {str(e)}")
+

@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from app.api.upload_router import router as upload_router
 from app.api.list_router import router as list_router
+from app.api.record_router import router as record_router
 from app.core.database import create_tables
 
 def create_app() -> FastAPI:
@@ -12,6 +13,7 @@ def create_app() -> FastAPI:
     # 라우터 등록
     app.include_router(upload_router, prefix="/upload", tags=["Upload"])
     app.include_router(list_router, prefix="/list", tags=["List"])
+    app.include_router(record_router, prefix="/record", tags=["Record"])
     
     @app.get("/", tags=["Root"])
     def read_root():

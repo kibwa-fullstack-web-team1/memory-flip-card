@@ -8,7 +8,8 @@ from app.helper.photo_service import upload_photo_to_s3
 
 router = APIRouter()
 
-@router.post("/")
+#사진 업로드 api
+@router.post("/family-photos")
 async def upload_family_photo(
     user_id: str = Form(...),
     file: UploadFile = File(...),

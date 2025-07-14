@@ -8,7 +8,7 @@ from app.schemas.photo_schema import FamilyPhotoListResponse, PhotoItem
 router = APIRouter()
 
 #가족사진 목록 조회 API
-@router.get("/", response_model=FamilyPhotoListResponse)
+@router.get("/family-photos", response_model=FamilyPhotoListResponse)
 def get_family_photos(user_id: str = Query(...), db: Session = Depends(get_db)):
     photos = db.query(FamilyPhoto).filter(FamilyPhoto.user_id == user_id).all()
 
