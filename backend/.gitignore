@@ -1,0 +1,12 @@
+# documents
+documents/
+.cursor/
+
+# Python
+__pycache__/
+*.pyc
+.env
+venv/
+.venv/
+
+frontend/
