@@ -13,6 +13,9 @@ memory-flip-card/
 │   │   └── upload_schema.py
 │   ├── helper/              
 │   │   └── photo_service.py
+│   ├── services/           
+│   │   └── __init__.py    
+│   │   └── image_processing_service.py 
 │   ├── core/                   
 │   │   ├── config.py            
 │   │   └── database.py

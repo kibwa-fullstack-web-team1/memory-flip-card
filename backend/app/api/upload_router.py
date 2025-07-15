@@ -15,15 +15,9 @@ async def upload_family_photo(
     file: UploadFile = File(...),
     db: Session = Depends(get_db)
 ):
-    # 유효성 검사
-    if not file.filename.lower().endswith(('.jpg', '.jpeg', '.png')):
-        raise HTTPException(status_code=400, detail="이미지 파일만 허용됩니다.")
-
     # S3 업로드 서비스 호출
     try:
         s3_url = upload_photo_to_s3(file, user_id)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"S3 업로드 실패: {str(e)}")
 
     # DB 저장
     photo_record = FamilyPhoto(
@@ -39,5 +33,9 @@ async def upload_family_photo(
         "photo_id": photo_record.id,
         "file_url": s3_url
     })
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"업로드 실패: {str(e)}")
 
 # +) 업로드 파일 용량 제한 기능 추가
