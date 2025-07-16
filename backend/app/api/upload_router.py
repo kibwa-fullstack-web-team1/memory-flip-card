@@ -19,20 +19,18 @@ async def upload_family_photo(
     try:
         s3_url = upload_photo_to_s3(file, user_id)
 
-    # DB 저장
-    photo_record = FamilyPhoto(
-        user_id=user_id,
-        file_path=s3_url
-    )
-    db.add(photo_record)
-    db.commit()
-    db.refresh(photo_record)
+        # DB 저장
+        photo_record = save_photo_record(db, user_id, s3_url)
+        
+        db.add(photo_record)
+        db.commit()
+        db.refresh(photo_record)
 
-    return JSONResponse(status_code=200, content={
-        "message": "업로드 성공",
-        "photo_id": photo_record.id,
-        "file_url": s3_url
-    })
+        return JSONResponse(status_code=200, content={
+            "message": "업로드 성공",
+            "photo_id": photo_record.id,
+            "file_url": s3_url
+        })
     except HTTPException:
         raise
     except Exception as e:

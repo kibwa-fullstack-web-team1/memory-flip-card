@@ -1,12 +1,11 @@
-from pydantic import BaseModel, HttpUrl
+from pydantic import BaseModel, HttpUrl, ConfigDict
 from typing import List
 
 class PhotoItem(BaseModel):
     id: int
     file_url: HttpUrl
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 class FamilyPhotoListResponse(BaseModel):
     user_id: str

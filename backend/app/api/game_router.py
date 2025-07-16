@@ -6,7 +6,7 @@ from app.deps.db import get_db
 from app.models.upload_photo import FamilyPhoto
 from app.models.game_result import GameResult
 from app.schemas.photo_schema import FamilyPhotoListResponse, PhotoItem
-from app.schemas.record_scehma import GameResultCreate, GameResultResponse, GameResultListResponse
+from app.schemas.record_schema import GameResultCreate, GameResultResponse, GameResultListResponse
 
 router = APIRouter()
 

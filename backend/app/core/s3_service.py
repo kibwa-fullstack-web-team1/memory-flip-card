@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 from fastapi import UploadFile
-from config.config import get_s3_client, current_config
+from app.config.config import get_s3_client, current_config
 
 # S3 업로드 함수
 def upload_file_to_s3(file: UploadFile, user_id: str, folder: str = "family_photos") -> str:

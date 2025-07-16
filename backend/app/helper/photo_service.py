@@ -1,7 +1,9 @@
 from fastapi import UploadFile, HTTPException
 import uuid
 from datetime import datetime
-from app.core.config import get_s3_client, get_settings
+from sqlalchemy.orm import Session
+from app.core.s3_service import upload_file_to_s3
+from app.config.config import get_s3_client, get_settings
 from app.models.upload_photo import FamilyPhoto
 
 def upload_photo_to_s3(file: UploadFile, user_id: str) -> str:
@@ -43,7 +45,7 @@ def save_photo_record(db: Session, user_id: str, file_url: str) -> FamilyPhoto:
     db.commit()
     db.refresh(photo_record)
     return photo_record
-    
+
 def get_user_photos(db: Session, user_id: str) -> list[FamilyPhoto]:
     """
     사용자의 모든 사진을 조회합니다.

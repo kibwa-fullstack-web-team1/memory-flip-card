@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import Optional, List
 
 class GameResultCreate(BaseModel):
@@ -17,8 +17,7 @@ class GameResultResponse(BaseModel):
     duration_seconds: int
     difficulty: Optional[str] = None
     
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 class GameResultListResponse(BaseModel):
     user_id: str
