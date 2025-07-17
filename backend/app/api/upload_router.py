@@ -1,10 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException, File, UploadFile, Form
 from sqlalchemy.orm import Session
 from fastapi.responses import JSONResponse
+from typing import List
 
 from app.deps.db import get_db
 from app.models.upload_photo import FamilyPhoto
-from app.helper.photo_service import upload_photo_to_s3
+from app.helper.photo_service import save_photo_record
+from app.services.image_processing import generate_cards_from_bytes
+from app.core.s3_service import upload_file_to_s3, upload_pil_image_to_s3
 
 router = APIRouter()
 

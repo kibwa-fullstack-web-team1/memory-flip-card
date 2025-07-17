@@ -5,25 +5,7 @@ from sqlalchemy.orm import Session
 from app.core.s3_service import upload_file_to_s3
 from app.config.config import get_s3_client, get_settings
 from app.models.upload_photo import FamilyPhoto
-
-def upload_photo_to_s3(file: UploadFile, user_id: str) -> str:
-    """
-    S3에 사진을 업로드하고 URL을 반환합니다.
-    
-    Args:
-        file: 업로드할 파일
-        user_id: 사용자 ID
-        
-    Returns:
-        str: 업로드된 파일의 S3 URL
-    """
-
-    # 파일 유효성 검사
-    if not file.filename.lower().endswith(('.jpg', '.jpeg', '.png')):
-        raise HTTPException(status_code=400, detail="이미지 파일만 허용됩니다.")
-    
-    # S3 업로드
-    return upload_file_to_s3(file, user_id, "family_photos")
+from app.services.image_processing import generate_cards_from_bytes
 
 def save_photo_record(db: Session, user_id: str, file_url: str) -> FamilyPhoto:
     """
@@ -58,3 +40,22 @@ def get_user_photos(db: Session, user_id: str) -> list[FamilyPhoto]:
         list[FamilyPhoto]: 사용자의 사진 목록
     """
     return db.query(FamilyPhoto).filter(FamilyPhoto.user_id == user_id).all()
+
+def generate_and_store_cards(
+    db: Session,
+    user_id: str,
+    img_bytes: bytes,
+) -> list[str]:
+    """YOLO → 카드 PIL → S3 저장 → DB 저장 → URL 리스트 반환"""
+    card_urls: list[str] = []
+    for idx, card in enumerate(generate_cards_from_bytes(img_bytes)):
+        url = upload_pil_image_to_s3(
+            card,
+            user_id,
+            filename=f"card_{idx}.jpg",
+        )
+        # 카드 파일 DB 기록
+        photo = FamilyPhoto(user_id=user_id, file_path=url)
+        db.add(photo)
+        card_urls.append(url)
+    return card_urls
