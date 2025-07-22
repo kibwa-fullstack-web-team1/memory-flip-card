@@ -6,7 +6,7 @@ from app.config.config import current_config
 # 데이터베이스 URL 설정
 SQLALCHEMY_DATABASE_URL = current_config.DATABASE_URL
 
-engine = create_engine(SQLALCHEMY_DATABASE_URL)
+engine = create_engine(SQLALCHEMY_DATABASE_URL, pool_recycle=3600, pool_pre_ping=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()

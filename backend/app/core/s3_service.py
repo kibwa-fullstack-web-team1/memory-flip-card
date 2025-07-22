@@ -3,7 +3,7 @@ import uuid
 from PIL import Image
 from datetime import datetime
 from fastapi import UploadFile
-from app.config.config import get_s3_client,get_settings
+from app.config.config import get_s3_client, get_settings
 
 # S3 업로드 함수, 원본 사진 업로드
 def upload_file_to_s3(file: UploadFile, user_id: str, folder: str = "family_photos") -> str:
@@ -32,26 +32,75 @@ def upload_file_to_s3(file: UploadFile, user_id: str, folder: str = "family_phot
         s3_key
     )
 
-    file_url = f"https://{current_config.AWS_S3_BUCKET_NAME}.s3.{current_config.AWS_S3_REGION}.amazonaws.com/{s3_key}"
+    file_url = f"https://{config.AWS_S3_BUCKET_NAME}.s3.{config.AWS_S3_REGION}.amazonaws.com/{s3_key}"
     return file_url
 
-def delete_file_from_s3(s3_key: str) -> bool:
+def download_file_from_s3(s3_url: str) -> io.BytesIO:
+    """
+    S3 URL에서 파일을 다운로드하여 메모리 내 바이트 스트림으로 반환합니다.
+    URL에서 버킷 이름과 키를 직접 파싱합니다.
+
+    Args:
+        s3_url: 다운로드할 파일의 전체 S3 URL
+
+    Returns:
+        io.BytesIO: 파일 데이터가 담긴 메모리 버퍼
+    """
+    try:
+        s3_client = get_s3_client()
+        
+        # URL에서 버킷 이름과 키 분리
+        if not s3_url.startswith('https://'):
+            raise ValueError(f"잘못된 S3 URL 형식입니다: {s3_url}")
+
+        parts = s3_url.replace('https://', '').split('/')
+        domain = parts[0]
+        key = '/'.join(parts[1:])
+        
+        bucket_name = domain.split('.s3.')[0]
+
+        if not bucket_name or not key:
+            raise ValueError(f"URL에서 버킷 이름과 키를 파싱할 수 없습니다: {s3_url}")
+
+        buffer = io.BytesIO()
+        s3_client.download_fileobj(
+            Bucket=bucket_name,
+            Key=key,
+            Fileobj=buffer
+        )
+        buffer.seek(0)
+        return buffer
+    except Exception as e:
+        print(f"S3에서 파일을 다운로드하는 중 오류 발생: {e}")
+        raise
+
+def delete_file_from_s3(s3_url: str) -> bool:
     """
     S3에서 파일을 삭제합니다.
     
     Args:
-        s3_key: 삭제할 파일의 S3 키
+        s3_url: 삭제할 파일의 S3 URL
         
     Returns:
         bool: 삭제 성공 여부
     """
     try:
         s3_client = get_s3_client()
-        config = get_settings()
+        
+        if not s3_url.startswith('https://'):
+             raise ValueError(f"잘못된 S3 URL 형식입니다: {s3_url}")
+
+        parts = s3_url.replace('https://', '').split('/')
+        domain = parts[0]
+        key = '/'.join(parts[1:])
+        bucket_name = domain.split('.s3.')[0]
+
+        if not bucket_name or not key:
+            raise ValueError(f"URL에서 버킷 이름과 키를 파싱할 수 없습니다: {s3_url}")
 
         s3_client.delete_object(
-            Bucket=config.AWS_S3_BUCKET_NAME,
-            Key=s3_key
+            Bucket=bucket_name,
+            Key=key
         )
         return True
     except Exception:

@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from app.deps.db import get_db
-from app.helper.photo_service import get_user_photos
+from app.helper.photo_helper import get_user_photos
 from app.models.upload_photo import FamilyPhoto
 from app.schemas.photo_schema import FamilyPhotoListResponse, PhotoItem
 

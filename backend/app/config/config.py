@@ -1,6 +1,10 @@
 import os
 import boto3
 from functools import lru_cache
+from dotenv import load_dotenv
+
+# .env 파일에서 환경 변수 로드
+load_dotenv()
 
 class Config:
     """기본 설정"""
@@ -13,7 +17,7 @@ class Config:
     AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID', '')
     AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY', '')
     AWS_S3_BUCKET_NAME = os.environ.get('AWS_S3_BUCKET_NAME', '')
-    AWS_S3_REGION = os.environ.get('AWS_S3_REGION', 'ap-northeast-2')
+    AWS_S3_REGION = os.environ.get('AWS_S3_REGION', 'ap-northeast-1')
 
 class DevelopmentConfig(Config):
     """개발 환경 설정"""
@@ -31,7 +35,7 @@ config_by_name = dict(
 # 현재 환경에 따른 설정 선택
 def get_config():
     """환경에 따른 설정을 반환합니다."""
-    env = os.environ.get('FLASK_ENV', 'development')
+    env = os.environ.get('FLASK_ENV', 'development') #이건 뭥미?
     return config_by_name.get(env, DevelopmentConfig)
 
 # 현재 설정 인스턴스

@@ -1,90 +1,83 @@
-import io
-import os
-from typing import Tuple,List
-
 import cv2
+import dlib
+import numpy as np
 from PIL import Image
-from ultralytics import YOLO
 
-# ──────────────────────────────────────────────
-# 1. YOLO 모델 로드 (전역·싱글톤)
-# ──────────────────────────────────────────────
-MODEL_NAME = os.getenv("YOLO_WEIGHTS","yolov8n.pt") #GPU 미사용시 yolo8n.pt(나노), yolov8s.pt(스물)로 시작 
-model = YOLO(MODEL_NAME)
+def crop_face_with_padding(image_path, output_size=(400, 500)):
+    detector = dlib.get_frontal_face_detector()
+    img = cv2.imread(image_path)
+    if img is None:
+        raise ValueError("이미지를 불러올 수 없습니다.")
+    return _process_face_crop(img, detector, output_size)
 
-# ──────────────────────────────────────────────
-# 2. 타입 힌트
-# ──────────────────────────────────────────────
-BBox = Tuple[int, int, int, int]        # (x1, y1, x2, y2)
+def crop_face_from_bytes(image_bytes: bytes, output_size=(400, 500)) -> Image.Image:
+    """dlib를 사용하여 이미지 바이트에서 얼굴을 크롭합니다."""
+    detector = dlib.get_frontal_face_detector()
+    
+    # 바이트를 numpy 배열로 변환
+    nparr = np.frombuffer(image_bytes, np.uint8)
+    img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+    
+    if img is None:
+        raise ValueError("이미지 데이터를 디코딩할 수 없습니다.")
 
-# ──────────────────────────────────────────────
-# 3. 사람 탐지 함수
-# ──────────────────────────────────────────────
-def detect_human(img_bytes:bytes, conf_threshold: float=0.4) ->List[BBox]:
-    results = model.predict(
-        img_bytes,
-        imgsz=640,
-        conf=conf_threshold,
-        classes=[0],
-        verbose=False
-    )
-    bboxes: List[BBox] = []
-    for r in results:
-        for box in r.boxes:
-            if int(box.cls[0]) == 0: #확실히 사람
-                x1, y1, x2, y2 = box.xyxy[0].tolist()
-                bboxes.append(int(x1), int(y1), int(x2), int(y2))
-    return bboxes
+    # 얼굴 크롭 처리
+    processed_img_cv2 = _process_face_crop(img, detector, output_size)
+    
+    # OpenCV(BGR) 이미지를 PIL(RGB) 이미지로 변환
+    processed_img_rgb = cv2.cvtColor(processed_img_cv2, cv2.COLOR_BGR2RGB)
+    return Image.fromarray(processed_img_rgb)
 
-# ──────────────────────────────────────────────
-# 4. bbox → 카드용 이미지로 크롭 & 정형화
-# ──────────────────────────────────────────────
+def _process_face_crop(img: np.ndarray, detector, output_size: tuple):
+    """얼굴을 찾아 크롭하는 핵심 로직"""
+    height, width = img.shape[:2]
+    orientation = "landscape" if width > height else "portrait"
 
-def crop_and_normalize(
-    img: Image.Image,
-    bbox: BBox,
-    card_size: Tuple[int, int] = (400, 560),
-    bg_color=(255, 255, 255),
-) -> Image.Image:
-    """
-    1) bbox 기준으로 사람 영역 crop
-    2) 카드 비율(기본 4:5) 유지하며 중앙 배치·패딩
-    3) 최종 card_size 로 리사이즈
-    """
-    x1, y1, x2, y2 = bbox
-    person_img = img.crop((x1, y1, x2, y2))
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    faces = detector(gray)
 
-   # 비율 유지하며 썸네일
-    target_w, target_h = card_size
-    person_img.thumbnail(card_size, Image.LANCZOS)
+    if len(faces) == 0:
+        raise ValueError("이미지에서 얼굴을 찾을 수 없습니다.")
 
-    # 새 캔버스에 중앙 정렬
-    canvas = Image.new("RGB", card_size, bg_color)
-    paste_x = (target_w - person_img.width) // 2
-    paste_y = (target_h - person_img.height) // 2
-    canvas.paste(person_img, (paste_x, paste_y))
+    x1_all = min([face.left() for face in faces])
+    y1_all = min([face.top() for face in faces])
+    x2_all = max([face.right() for face in faces])
+    y2_all = max([face.bottom() for face in faces])
 
-    return canvas
+    face_group_width = x2_all - x1_all
+    face_group_height = y2_all - y1_all
 
-# ──────────────────────────────────────────────
-# 5. 업로드된 원본을 → 카드 이미지 리스트로 변환
-# ──────────────────────────────────────────────
-def generate_cards_from_bytes(
-    img_bytes: bytes,
-    max_cards: int = 6,
-    card_size: Tuple[int, int] = (400, 500),
-) -> List[Image.Image]:
-    """
-    원본 바이트 입력 → PIL 카드 이미지 리스트 반환
-    - 사람 bbox 여러 개면 여러 장 생성
-    - max_cards 개수 제한
-    """
-    img = Image.open(io.BytesIO(img_bytes)).convert("RGB")
-    bboxes = detect_human(img_bytes)
+    if orientation == "portrait":
+        left_right_ratio = 0.1
+        top_ratio = 0.25
+        bottom_ratio = 0.6
+    else:
+        left_right_ratio = 0.25
+        top_ratio = 0.2
+        bottom_ratio = 0.4
 
-    cards: List[Image.Image] = []
-    for bbox in bboxes[:max_cards]:
-        card_img = crop_and_normalize(img, bbox, card_size=card_size)
-        cards.append(card_img)
-    return cards
+    pad_x = int(face_group_width * left_right_ratio)
+    pad_y_top = int(face_group_height * top_ratio)
+    pad_y_bottom = int(face_group_height * bottom_ratio)
 
+    crop_x1 = max(x1_all - pad_x, 0)
+    crop_x2 = min(x2_all + pad_x, img.shape[1])
+    crop_y1 = max(y1_all - pad_y_top, 0)
+    crop_y2 = min(y2_all + pad_y_bottom, img.shape[0])
+
+    cropped = img[crop_y1:crop_y2, crop_x1:crop_x2]
+
+    desired_ratio = output_size[0] / output_size[1]
+    current_h, current_w = cropped.shape[:2]
+    current_ratio = current_w / current_h
+
+    if current_ratio < desired_ratio:
+        new_w = int(current_h * desired_ratio)
+        pad = (new_w - current_w) // 2
+        cropped = cv2.copyMakeBorder(cropped, 0, 0, pad, pad, cv2.BORDER_CONSTANT, value=[0, 0, 0])
+    elif current_ratio > desired_ratio:
+        new_h = int(current_w / desired_ratio)
+        pad = (new_h - current_h) // 2
+        cropped = cv2.copyMakeBorder(cropped, pad, pad, 0, 0, cv2.BORDER_CONSTANT, value=[0, 0, 0])
+
+    return cv2.resize(cropped, output_size)
