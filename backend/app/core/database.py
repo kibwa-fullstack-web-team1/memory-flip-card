@@ -14,3 +14,4 @@ Base = declarative_base()
 def create_tables():
     """데이터베이스 테이블을 생성합니다."""
     Base.metadata.create_all(bind=engine)
+

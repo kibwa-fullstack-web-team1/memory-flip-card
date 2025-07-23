@@ -4,6 +4,9 @@ from app.api.list_router import router as list_router
 from app.api.game_router import router as game_router
 from app.core.database import create_tables
 
+# Import all models to ensure they are registered with SQLAlchemy Base.metadata
+import app.models
+
 def create_app() -> FastAPI:
     # 데이터베이스 테이블 생성
     create_tables()
