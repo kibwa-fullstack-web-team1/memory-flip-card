@@ -8,8 +8,10 @@ from app.helper.photo_helper import save_photo_record
 from app.helper.card_helper import create_and_store_cards
 from app.models.upload_photo import FamilyPhoto
 from app.models.card_image import CardImage
+from app.helper.photo_helper import check_photo_duplicate
 from app.services.image_processing import crop_face_from_bytes # dlib 처리용
 from app.core.s3_service import upload_file_to_s3, download_file_from_s3, upload_pil_image_to_s3
+from app.utils.functions import calculate_file_hash
 
 router = APIRouter()
 
@@ -21,11 +23,27 @@ async def upload_family_photo(
     db: Session = Depends(get_db)
 ):
     try:
+        # 파일 내용 읽기
+        file_contents = await file.read()
+        await file.seek(0)  # 파일 포인터를 다시 처음으로 이동
+
+        # 파일 해시 계산
+        file_hash = calculate_file_hash(file_contents)
+
+        # 중복 확인
+        existing_photo = check_photo_duplicate(db, user_id, file_hash)
+        if existing_photo:
+            return JSONResponse(status_code=200, content={
+                "message": "이미 업로드된 파일입니다. 건너뜁니다.",
+                "photo_id": existing_photo.id,
+                "file_url": existing_photo.file_path
+            })
+
         # S3 업로드 서비스 호출
         s3_url = upload_file_to_s3(file, user_id)
 
         # DB 저장
-        photo_record = save_photo_record(db, user_id, s3_url)
+        photo_record = save_photo_record(db, user_id, s3_url, file_hash)
     
         return JSONResponse(status_code=200, content={
             "message": "업로드 성공",
@@ -106,7 +124,7 @@ async def generate_cards_with_dlib(
                 card_url = upload_pil_image_to_s3(
                     img=card_pil_img,
                     user_id=photo_record.user_id,
-                    folder="card_images_dlib"
+                    folder="card_images"
                 )
 
                 # 5. 새 카드 정보를 DB에 저장할 준비

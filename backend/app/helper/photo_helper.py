@@ -1,4 +1,4 @@
-from fastapi import UploadFile, HTTPException
+from typing import Optional
 import uuid
 from datetime import datetime
 from sqlalchemy.orm import Session
@@ -6,7 +6,7 @@ from app.core.s3_service import upload_pil_image_to_s3
 from app.config.config import get_s3_client, get_settings
 from app.models.upload_photo import FamilyPhoto
 
-def save_photo_record(db: Session, user_id: str, file_url: str) -> FamilyPhoto:
+def save_photo_record(db: Session, user_id: str, file_url: str, file_hash: str) -> FamilyPhoto:
     """
     원본 사진 정보를 데이터베이스에 저장합니다.
     
@@ -14,13 +14,15 @@ def save_photo_record(db: Session, user_id: str, file_url: str) -> FamilyPhoto:
         db: 데이터베이스 세션
         user_id: 사용자 ID
         file_url: 파일 URL
+        file_hash: 파일 해시
         
     Returns:
         FamilyPhoto: 저장된 사진 레코드
     """
     photo_record = FamilyPhoto(
         user_id=user_id,
-        file_path=file_url
+        file_path=file_url,
+        file_hash=file_hash,
     )
     db.add(photo_record)
     db.commit()
@@ -40,21 +42,19 @@ def get_user_photos(db: Session, user_id: str) -> list[FamilyPhoto]:
     """
     return db.query(FamilyPhoto).filter(FamilyPhoto.user_id == user_id).all()
 
-# def generate_and_store_cards(
-#     db: Session,
-#     user_id: str,
-#     img_bytes: bytes,
-# ) -> list[str]:
-#     """YOLO → 카드 PIL → S3 저장 → DB 저장 → URL 리스트 반환"""
-#     card_urls: list[str] = []
-#     for idx, card in enumerate(generate_cards_from_bytes(img_bytes)):
-#         url = upload_pil_image_to_s3(
-#             card,
-#             user_id,
-#             filename=f"card_{idx}.jpg",
-#         )
-#         # 카드 파일 DB 기록
-#         photo = FamilyPhoto(user_id=user_id, file_path=url)
-#         db.add(photo)
-#         card_urls.append(url)
-#     return card_urls
+def get_processed_photos(db: Session, user_id: str) -> list[FamilyPhoto]:
+    """
+    처리된 이미지만 필터링하여 조회합니다.
+    """
+    return (
+        db.query(FamilyPhoto)
+        .filter(
+            FamilyPhoto.user_id == user_id,
+            FamilyPhoto.processed_file_path.isnot(None)
+        )
+        .all()
+    )
+
+# 업로드 이미지 중복체크 함수
+def check_photo_duplicate(db: Session, user_id: str, file_hash: str) -> Optional[FamilyPhoto]:
+    return db.query(FamilyPhoto).filter_by(user_id=user_id, file_hash=file_hash).first()
