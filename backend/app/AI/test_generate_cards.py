@@ -6,7 +6,7 @@ import sys
 
 # YOLO 기반 카드 생성 모듈 가져오기
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
-from app.services.yolo_image_processing import generate_cards_from_bytes
+from app.services.image_processing import generate_cards_from_bytes
 
 # 테스트 이미지 경로
 TEST_IMAGE_DIR = Path(__file__).parent / "test_photos" 
