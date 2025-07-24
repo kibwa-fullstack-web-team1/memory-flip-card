@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from app.api.upload_router import router as upload_router
 from app.api.list_router import router as list_router
 from app.api.game_router import router as game_router
@@ -12,6 +13,21 @@ def create_app() -> FastAPI:
     create_tables()
     
     app = FastAPI(title="Memory Flip Card API")
+
+    # CORS 설정
+    origins = [
+        "http://localhost:5173",
+        "http://localhost",
+        "http://13.251.163.144:5173", # 프론트엔드 개발 서버 주소
+    ]
+
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=origins,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
     
     # 라우터 등록
     app.include_router(upload_router, prefix="/upload", tags=["Upload"])
