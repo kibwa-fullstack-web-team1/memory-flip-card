@@ -7,7 +7,7 @@ class GameResultCreate(BaseModel):
     attempts: int
     matches: int
     duration_seconds: int
-    difficulty: Optional[str] = None
+    difficulty: str
 
 class GameResultResponse(BaseModel):
     id: int
@@ -15,7 +15,7 @@ class GameResultResponse(BaseModel):
     attempts: int
     matches: int
     duration_seconds: int
-    difficulty: Optional[str] = None
+    difficulty: str
     
     model_config = ConfigDict(from_attributes=True)
 
