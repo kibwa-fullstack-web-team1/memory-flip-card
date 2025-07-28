@@ -9,6 +9,6 @@ __pycache__/
 venv/
 .venv/
 
-frontend/
+frontend/garden_of_memories/
 
 yolov8n.pt

@@ -16,17 +16,17 @@ def create_app() -> FastAPI:
 
     # CORS 설정
     origins = [
-        "http://localhost:5173",
-        "http://localhost",
-        "http://13.251.163.144:5173", # 프론트엔드 개발 서버 주소
+        "http://localhost:5173", # react 개발 서버 포트
+        "http://localhost", # 개발 환경
+        "http://13.251.163.144:5173", # 프론트엔드 배포 서버 주소 
     ]
 
     app.add_middleware(
         CORSMiddleware,
         allow_origins=origins,
         allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
+        allow_methods=["*"], # 모든 HTTP 메소드 허용
+        allow_headers=["*"], # 모든 헤더 허용
     )
     
     # 라우터 등록

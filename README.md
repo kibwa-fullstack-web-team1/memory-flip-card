@@ -1,7 +1,14 @@
 ```
 memory-flip-card/
 ├── app/
-│   ├── init.py             
+│   ├── init.py       
+│   ├── AI/     
+│   │   ├── test_generate_cards.py
+│   │   ├── test.ipynb
+│   │   └── test_photos/
+│   │       └── family.png
+│   ├── config/                
+│   │   └── config.py
 │   ├── api/                   
 │   │   ├── init.py
 │   │   ├── upload_router.py     
