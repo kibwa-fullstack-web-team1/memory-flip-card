@@ -37,18 +37,20 @@ function App() {
     fetchCardImages();
   }, [userId]);
 
-  // 카드 이미지가 준비되었지만 자동 시작 제거
-  // -> 새 게임 버튼으로 시작하게 하기 위해 자동 호출 제거
 
-  useEffect(() => {
-    // difficulty가 null이 아니고, cardImages가 로드되었을 때만 실행
-    if (difficulty && cardImages.length > 0 && !gameStarted) {
-      shuffleCards(cardImages);
-    }
-  }, [difficulty, cardImages, gameStarted]); // cardImages도 의존성 배열에 추가
+  // useEffect(() => {
+  //   // difficulty가 null이 아니고, cardImages가 로드되었을 때만 실행
+  //   if (difficulty && cardImages.length > 0 && !gameStarted) {
+  //     shuffleCards(cardImages);
+  //   }
+  // }, [difficulty, cardImages, gameStarted]); // cardImages도 의존성 배열에 추가
 
   // 카드 셔플 함수
   const shuffleCards = (images) => {
+    if (difficulty === null) {
+      console.warn("난이도가 선택되지 않았습니다. 먼저 난이도를 선택해주세요.");
+      return;
+    }
     const difficultyToCount = {
       easy: 8,
       medium: 12,
@@ -139,13 +141,14 @@ function App() {
   };
 
   // 게임 다시 시작 (같은 난이도)
-  // difficulty 상태를 건드리지 않음
   const handlePlayAgain = () => {
+    setShowResultPopup(false); // 팝업을 닫고
     shuffleCards(cardImages);
   };
 
   // 게임 전체 초기화 (난이도 선택으로 돌아감)
   const resetGame = () => {
+    setShowResultPopup(false); // 팝업을 닫고
     setGameStarted(false);
     setDifficulty(null);
     setCards([]);
@@ -196,7 +199,7 @@ function App() {
         </div>
       )}
 
-
+    {/* 이미지 부족 경고 팝업 */}
     {imageWarning && (
       <div className="popup warning">
         <p>이미지 장수가 부족합니다. 사진을 더 업로드해주세요.</p>
@@ -204,8 +207,9 @@ function App() {
       </div>
     )}
 
-      {/* 게임 시작 버튼 (카드가 준비되었지만 아직 시작 안 함) */}
-      {!gameStarted && difficulty && !showResultPopup && (
+      {/* 게임 시작 버튼 (난이도가 선택되었지만 아직 게임이 시작되지 않았을 때 표시) */}
+      {/* 이 버튼을 클릭해야 shuffleCards가 호출 */}
+      {!gameStarted && difficulty && !showResultPopup && cards.length === 0 && (
         <button className="start-button" onClick={() => shuffleCards(cardImages)}>
           새 게임 시작
         </button>
@@ -214,7 +218,7 @@ function App() {
       {/* 게임 끝나고 리셋 (난이도 선택 화면으로 돌아가기) */}
       {showResultPopup && (
         <button className="start-button" onClick={resetGame}>
-          다시 시작하기 (처음으로)
+          처음으로
         </button>
       )}
 
@@ -238,6 +242,7 @@ function App() {
         turns={turns}
         elapsedTime={elapsedTime}
         onPlayAgain={handlePlayAgain}
+        onResetGame={resetGame} 
       />
     </div>
   );
