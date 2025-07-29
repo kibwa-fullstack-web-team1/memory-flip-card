@@ -9,6 +9,9 @@ __pycache__/
 venv/
 .venv/
 
-frontend/garden_of_memories/
+frontend/
 
-yolov8n.pt
+#AI test
+test_photos/
+dlib_test_outputs/
+yolo_test_outputs/
