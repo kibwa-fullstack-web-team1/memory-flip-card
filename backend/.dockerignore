@@ -1,0 +1,8 @@
+.venv/
+__pycache__/
+*.pyc
+.git/
+.gitignore
+dlib_test_outputs/
+test_photos/
+yolo_test_outputs/
