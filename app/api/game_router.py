@@ -17,6 +17,9 @@ def save_game_result(
     result: GameResultCreate,
     db: Session = Depends(get_db)
 ):
+    """
+    게임 결과 저장 API
+    """
     try:
         # 여기에 게임 결과를 저장하는 모델을 생성하고 DB에 저장
         game_result = GameResult(
@@ -48,6 +51,9 @@ def get_game_results(
     offset: int = Query(0, description="건너뛸 결과 수", ge=0),
     db: Session = Depends(get_db)
 ):
+    """
+    게임 결과 목록 조회 API
+    """
     try:
         # 사용자 ID로 게임 결과 조회 (최신순으로 정렬)
         results = db.query(GameResult).filter(

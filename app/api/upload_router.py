@@ -21,6 +21,9 @@ async def upload_family_photo(
     file: UploadFile = File(...),
     db: Session = Depends(get_db)
 ):
+    """
+    가족 사진 업로드 API
+    """
     try:
         # 파일 내용 읽기
         file_contents = await file.read()
@@ -60,6 +63,9 @@ async def generate_cards_from_existing_photos(
     user_id: str = Form(...),
     db: Session = Depends(get_db)
 ):
+    """
+    YOLO 기반 카드 생성 API
+    """
     # 1. user_id로 DB에서 해당 사용자의 모든 사진 조회
     photo_records = db.query(FamilyPhoto).filter(FamilyPhoto.user_id == user_id).all()
     if not photo_records:

@@ -14,7 +14,7 @@ router = APIRouter()
 @router.get("/family-photos", response_model=FamilyPhotoListResponse)
 def get_family_photos(user_id: str = Query(...), db: Session = Depends(get_db)):
     """
-    특정 사용자의 모든 카드 이미지 URL을 조회합니다.
+    가족 사진 목록 조회 API
     """
     photos = get_user_photos(db, user_id)
 
@@ -49,7 +49,7 @@ def get_family_photos(user_id: str = Query(...), db: Session = Depends(get_db)):
 @router.get("/cards", response_model=List[str])
 def get_user_cards(user_id: str, db: Session = Depends(get_db)):
     """
-    특정 사용자의 모델 처리된 이미지 URL을 조회합니다.
+    사용자 카드 이미지 목록 조회 API
     """
     try:
         # CardImage 테이블에서 user_id에 해당하는 모든 카드 조회
