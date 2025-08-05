@@ -1,7 +1,25 @@
+# Python 관련
 **/.venv/
 **/__pycache__/
 *.pyc
+*.pyo
+*.pyd
+
+# Git 관련
+.git/
 .gitignore
+
+# 프로젝트 특정
 dlib_test_outputs/
 test_photos/
 yolo_test_outputs/
+
+# 환경 변수 파일
+.env
+.env.local
+.env.*.local
+
+# Docker 관련
+Dockerfile*
+docker-compose*
+.dockerignore
