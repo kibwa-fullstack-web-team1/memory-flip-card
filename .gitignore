@@ -1,17 +1,26 @@
-# documents
-documents/
-.cursor/
-
 # Python
 __pycache__/
 *.pyc
-.env
+**/.env
 venv/
 .venv/
+env/
+ENV/
 
-frontend/
+# Environment Variables
+.env
+.env.local
+.env.production
+
+# IDE
+.vscode/
+.idea/
+.cursor/
+
 
 #AI test
 test_photos/
 dlib_test_outputs/
 yolo_test_outputs/
+
+yolov8n.pt

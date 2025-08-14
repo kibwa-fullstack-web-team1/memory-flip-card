@@ -3,12 +3,12 @@ uvicorn[standard]
 sqlalchemy
 psycopg2-binary
 boto3
-requests
-httpx
-python-multipart
 python-dotenv
-pydantic>=2.0
-pydantic-settings>=2.0
-ultralytics
-pillow
-opencv-python
+python-multipart
+pydantic
+ultralytics==8.2.103
+opencv-python-headless==4.10.0.84
+pillow==10.4.0
+numpy==1.26.4
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.4.1+cpu

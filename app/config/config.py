@@ -16,8 +16,8 @@ class Config:
     # AWS S3 설정
     AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID', '')
     AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY', '')
-    AWS_S3_BUCKET_NAME = os.environ.get('AWS_S3_BUCKET_NAME', '')
-    AWS_S3_REGION = os.environ.get('AWS_S3_REGION', 'ap-northeast-1')
+    AWS_S3_BUCKET_NAME = os.environ.get('S3_BUCKET_NAME', 'kibwa-17')  # .env 파일의 실제 이름과 일치
+    AWS_S3_REGION = os.environ.get('AWS_REGION', 'ap-southeast-1')  # .env 파일의 실제 이름과 일치
 
 class DevelopmentConfig(Config):
     """개발 환경 설정"""
@@ -35,7 +35,7 @@ config_by_name = dict(
 # 현재 환경에 따른 설정 선택
 def get_config():
     """환경에 따른 설정을 반환합니다."""
-    env = os.environ.get('FLASK_ENV', 'development') #이건 뭥미?
+    env = os.environ.get('PHASE', 'development')  # .env 파일의 실제 이름과 일치
     return config_by_name.get(env, DevelopmentConfig)
 
 # 현재 설정 인스턴스
